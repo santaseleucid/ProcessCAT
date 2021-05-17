@@ -57,8 +57,8 @@ class ProcessCAT:
                 #print("spike removal time: " + str(time.time()-start_time))
                 disp[:1000] = 0
                 disp[-1000:] = 0
-                plot_title = sum_obj['start_date'] + " - " + rail + " - " + str(sp) + " - " + str(sum_obj['description'])
-                self.block_rms_driver(data_fname, raw_data[:,0], disp, plot_title)
+                plot_title = sum_obj['start_date'] + " - " + rail + " - " + str(sp) #+ " - " + str(sum_obj['description'])
+                self.block_rms_driver(data_fname, raw_data[:,0], disp, plot_title, int(sum_obj['sampling_distance']))
                 self.gen_spectrum_driver(data_fname, raw_data[:,0], disp, plot_title)
                 print()
         return        
@@ -265,12 +265,12 @@ class ProcessCAT:
     BLOCK RMS PROCESSING
     '''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''
     
-    def block_rms_driver(self,data_fname, dist, disp, plot_title):
+    def block_rms_driver(self,data_fname, dist, disp, plot_title, sampling_distance):
         #Filter 30-100
         filt30_100 = self.filt_process(dist, disp)        
         
         #calc RMS
-        x_out,y_out = self.calculate_rms(dist, filt30_100)
+        x_out,y_out = self.calculate_rms(dist, filt30_100,sampling_distance)
         x_out = x_out.reshape(-1,1)
         y_out = y_out.reshape(-1,1)
         rms = np.concatenate((x_out,y_out), axis = 1)
@@ -302,10 +302,10 @@ class ProcessCAT:
         return filt30_100
             
 
-    def calculate_rms(self, x_in, y_in):
+    def calculate_rms(self, x_in, y_in, sampling_distance):
         #currently doing a 1m block rms.. the number of points in a block depends on the sample distance
-        num_blocks = x_in.size//500
-        remainder = x_in.size % 500
+        num_blocks = x_in.size//int(1000/sampling_distance)
+        remainder = x_in.size % int(1000/sampling_distance)
         x_split = np.array(np.split(x_in[:-remainder], num_blocks))
         x_rem = x_in[-remainder:]
         y_split = np.array(np.split(y_in[:-remainder], num_blocks))
@@ -472,8 +472,8 @@ class ProcessCAT:
                 break
 
         iband -= 1
-        icount = np.array(list(range(0, int(maxband))), ndmin=2).T
-        manyratio = np.ones((int(maxband), 1)) * ratio
+        icount = np.array(list(range(1, int(maxband))), ndmin=2).T
+        manyratio = np.ones((int(maxband)-1, 1)) * ratio
 
         centrefreqs = pow(manyratio, icount)
 
