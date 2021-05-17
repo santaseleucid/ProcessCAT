@@ -58,7 +58,7 @@ class ProcessCAT:
                 disp[:1000] = 0
                 disp[-1000:] = 0
                 plot_title = sum_obj['start_date'] + " - " + rail + " - " + str(sp) #+ " - " + str(sum_obj['description'])
-                self.block_rms_driver(data_fname, raw_data[:,0], disp, plot_title, sum_obj['sampling_distance'])
+                self.block_rms_driver(data_fname, raw_data[:,0], disp, plot_title, int(sum_obj['sampling_distance']))
                 self.gen_spectrum_driver(data_fname, raw_data[:,0], disp, plot_title)
                 print()
         return        
@@ -304,8 +304,8 @@ class ProcessCAT:
 
     def calculate_rms(self, x_in, y_in, sampling_distance):
         #currently doing a 1m block rms.. the number of points in a block depends on the sample distance
-        num_blocks = x_in.size//(1000/sampling_distance)
-        remainder = x_in.size % (1000/sampling_distance)
+        num_blocks = x_in.size//int(1000/sampling_distance)
+        remainder = x_in.size % int(1000/sampling_distance)
         x_split = np.array(np.split(x_in[:-remainder], num_blocks))
         x_rem = x_in[-remainder:]
         y_split = np.array(np.split(y_in[:-remainder], num_blocks))
