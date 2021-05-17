@@ -18,6 +18,51 @@ class ProcessCAT:
         self.model2_description_tag = False
         return
 
+    def process_driver(self):
+        #iterate through files in directory    
+        for sum_obj in self.sum_obj_arr:
+            print("SUM FILE: " + sum_obj['filename'] )
+            for rail,sp in zip(sum_obj['rail'], sum_obj['sensor_position']):
+                print("Processing ... " + rail,sp)
+                if(len(sum_obj['rail'])==2):
+                    data_fname =  sum_obj['filename'].replace('.sum','_'+rail+'.txt') 
+                else:
+                    data_fname =  sum_obj['filename'].replace('.sum','.txt') 
+                
+                #Open File
+                try:
+                    raw_data = np.genfromtxt(
+                        os.path.join(self.root_path,data_fname)
+                    )
+                    
+                except FileNotFoundError:
+                    print(data_fname, ' not found, ensure path is correct')
+                    exit(-1)
+                if(raw_data.shape[0]==0):
+                    print(data_fname," FILE EMPTY")
+                    continue
+                
+                if(np.max(raw_data[:,0])==np.min(raw_data[:,0])): #need to generate new points because all zeros
+                    x = input("generating distance at "+ sum_obj['sampling_distance']+" mm because data file contains all zeros for distances.\n Enter any key to continue\n")
+                    raw_data[:,0] = np.arange(0,int(sum_obj['sampling_distance'])*raw_data.shape[0], int(sum_obj['sampling_distance']))                
+                else:
+                    raw_data[:,0]=raw_data[:,0]*1e6
+
+                #Spike Removal                    
+                #start_time = time.time()  
+                disp = spike_removal(
+                        raw_data[:,1], 
+                        raw_data[:,0]
+                        ) 
+                #print("spike removal time: " + str(time.time()-start_time))
+                disp[:1000] = 0
+                disp[-1000:] = 0
+                plot_title = sum_obj['start_date'] + " - " + rail + " - " + str(sp) + " - " + str(sum_obj['description'])
+                self.block_rms_driver(data_fname, raw_data[:,0], disp, plot_title)
+                self.gen_spectrum_driver(data_fname, raw_data[:,0], disp, plot_title)
+                print()
+        return        
+
     '''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''
     .SUM FILE PROCESSING
     '''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''
@@ -215,51 +260,6 @@ class ProcessCAT:
         print(str(len(self.file_list) - len(self.sum_obj_arr)) + ' data files')
         return
 
-
-    def process_driver(self):
-        #iterate through files in directory    
-        for sum_obj in self.sum_obj_arr:
-            print("SUM FILE: " + sum_obj['filename'] )
-            for rail,sp in zip(sum_obj['rail'], sum_obj['sensor_position']):
-                print("Processing ... " + rail,sp)
-                if(len(sum_obj['rail'])==2):
-                    data_fname =  sum_obj['filename'].replace('.sum','_'+rail+'.txt') 
-                else:
-                    data_fname =  sum_obj['filename'].replace('.sum','.txt') 
-                
-                #Open File
-                try:
-                    raw_data = np.genfromtxt(
-                        os.path.join(self.root_path,data_fname)
-                    )
-                    
-                except FileNotFoundError:
-                    print(data_fname, ' not found, ensure path is correct')
-                    exit(-1)
-                if(raw_data.shape[0]==0):
-                    print(data_fname," FILE EMPTY")
-                    continue
-                
-                if(np.max(raw_data[:,0])==np.min(raw_data[:,0])): #need to generate new points because all zeros
-                    x = input("generating distance at "+ sum_obj['sampling_distance']+" mm because data file contains all zeros for distances.\n Enter any key to continue\n")
-                    raw_data[:,0] = np.arange(0,int(sum_obj['sampling_distance'])*raw_data.shape[0], int(sum_obj['sampling_distance']))                
-                else:
-                    raw_data[:,0]=raw_data[:,0]*1e6
-
-                #Spike Removal                    
-                #start_time = time.time()  
-                disp = spike_removal(
-                        raw_data[:,1], 
-                        raw_data[:,0]
-                        ) 
-                #print("spike removal time: " + str(time.time()-start_time))
-                disp[:1000] = 0
-                disp[-1000:] = 0
-                plot_title = sum_obj['start_date'] + " - " + rail + " - " + str(sp) + " - " + str(sum_obj['description'])
-                self.block_rms_driver(data_fname, raw_data[:,0], disp, plot_title)
-                self.gen_spectrum_driver(data_fname, raw_data[:,0], disp, plot_title)
-                print()
-        return
 
     '''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''
     BLOCK RMS PROCESSING
