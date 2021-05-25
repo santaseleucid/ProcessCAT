@@ -7,12 +7,11 @@ root.attributes('-topmost', True)
 
 input("Enter any key to choose folder containing raw data\n")
 data_directory = filedialog.askdirectory()
-print("DATA DIRECTORY: ",data_directory, "\n")
+print("DATA DIRECTORY: ", data_directory, "\n")
 
 input("Enter any key to choose folder to export files to\n")
 export_directory = filedialog.askdirectory()
-print("EXPORT DIRECTORY: ",export_directory, "\n")
-
+print("EXPORT DIRECTORY: ", export_directory, "\n")
 
 
 CAT = ProcessCAT(data_directory, export_directory)
@@ -29,15 +28,15 @@ octavefracs = []
 if(oct3_csv == 'y' or oct3_png == 'y'):
     octavefracs.append(3)
 if(oct24_csv == 'y' or oct24_png == 'y'):
-    octavefracs.append(24)    
+    octavefracs.append(24)
 CAT.set_exports(
-    rms_csv = rms_csv=='y',
-    rms_png = rms_png=='y',
-    oct3_csv = oct3_csv=='y',
-    oct3_png = oct3_png=='y',
-    oct24_csv = oct24_csv=='y',
-    oct24_png = oct24_png=='y',
-    octavefracs = octavefracs
+    rms_csv=rms_csv == 'y',
+    rms_png=rms_png == 'y',
+    oct3_csv=oct3_csv == 'y',
+    oct3_png=oct3_png == 'y',
+    oct24_csv=oct24_csv == 'y',
+    oct24_png=oct24_png == 'y',
+    octavefracs=octavefracs
 )
 
 CAT.process_driver()
