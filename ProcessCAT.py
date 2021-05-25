@@ -64,6 +64,12 @@ class ProcessCAT:
                 plot_title = sum_obj['start_date'] + \
                     " - " + rail + " - " + \
                     str(sp)  # + " - " + str(sum_obj['description'])
+                try:
+                    plot_title = plot_title + " - " + \
+                        str(sum_obj['description'])
+                except:
+                    print("description unavailable")
+
                 self.block_rms_driver(data_fname, raw_data[:, 0], disp, plot_title, int(
                     sum_obj['sampling_distance'])/1e6)
                 self.gen_spectrum_driver(
