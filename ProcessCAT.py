@@ -60,11 +60,12 @@ class ProcessCAT:
 
                 disp[:1000] = 0
                 disp[-1000:] = 0
-                # + " - " + str(sum_obj['description'])
+
                 plot_title = sum_obj['start_date'] + \
-                    " - " + rail + " - " + str(sp)
+                    " - " + rail + " - " + \
+                    str(sp)  # + " - " + str(sum_obj['description'])
                 self.block_rms_driver(data_fname, raw_data[:, 0], disp, plot_title, int(
-                    sum_obj['sampling_distance']))
+                    sum_obj['sampling_distance'])/1e6)
                 self.gen_spectrum_driver(
                     data_fname, raw_data[:, 0], disp, plot_title)
                 print()
@@ -278,6 +279,9 @@ class ProcessCAT:
     ###################################################
 
     def block_rms_driver(self, data_fname, dist, disp, plot_title, sampling_distance):
+        """
+        sampling_distance needs to be in km
+        """
         # Filter 30-100
         filt30_100 = self.filt_process(dist, disp)
 
@@ -351,8 +355,8 @@ class ProcessCAT:
     def plot_rms(self, rms, data_fname, plot_title):
         cqi = self.cqi(rms[:, 1])
         plt.figure(figsize=(10, 6))
-        plt.plot(rms[:, 0]/1e6, rms[:, 1], color="black")
-        plt.plot(rms[:, 0]/1e6, np.ones(len(rms[:, 0]))*cqi, color="blue",
+        plt.plot(rms[:, 0], rms[:, 1], color="black")
+        plt.plot(rms[:, 0], np.ones(len(rms[:, 0]))*cqi, color="blue",
                  label="95th Percentile = " + str(round(cqi, 2)) + " (CQI)")
         plt.ylim([0, 50])
         ax = plt.gca()
