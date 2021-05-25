@@ -282,7 +282,26 @@ class ProcessCAT:
             self.plot_rms(rms, data_fname, plot_title)
         return
           
-            
+    def filt_process(self, dist, rough):
+        rows = len(dist)
+        sampdist = abs((dist[rows-1]-dist[0]))/(rows-1)
+        Ts = sampdist
+        Fs = 1/Ts
+        Fn = Fs/2
+        Rp = 1
+        Rs = 50
+
+        freqL = 1/(100e-6)
+        freqU = 1/(30e-6)
+        Wp = np.array([freqL, freqU])/Fn
+        Ws = Wp*np.array([0.8, 1.2])
+        [n, Wn] = signal.buttord(Wp, Ws, Rp, Rs)
+        sos = signal.butter(n, Wn, btype='bandpass', output='sos')
+        w, h = signal.sosfreqz(sos)
+        output = signal.sosfiltfilt(sos, rough)
+        return output
+
+    '''
     def filt_process(self, dist, rough):
         rows = len(dist)
         sampdist = abs((dist[rows-1]-dist[0]))/(rows-1)
@@ -300,12 +319,15 @@ class ProcessCAT:
         sos = signal.butter(N, Wn, btype, False, output, Fs)
         filt30_100 = signal.sosfiltfilt(sos, rough).reshape(-1, 1)
         return filt30_100
-            
+    '''  
 
     def calculate_rms(self, x_in, y_in, sampling_distance):
         #currently doing a 1m block rms.. the number of points in a block depends on the sample distance
-        num_blocks = x_in.size//int(1000/sampling_distance)
-        remainder = x_in.size % int(1000/sampling_distance)
+
+        sampling_distance = round(sampling_distance, 6) #classic python math
+
+        num_blocks = np.floor(x_in.size*sampling_distance*1000)
+        remainder = x_in.size % int(1e-3/sampling_distance)
         x_split = np.array(np.split(x_in[:-remainder], num_blocks))
         x_rem = x_in[-remainder:]
         y_split = np.array(np.split(y_in[:-remainder], num_blocks))
@@ -468,7 +490,7 @@ class ProcessCAT:
             foctlower = foctupper
             foctupper *= ratio
             iband += 1
-            if iband > maxband:
+            if iband >= maxband:
                 break
 
         iband -= 1
